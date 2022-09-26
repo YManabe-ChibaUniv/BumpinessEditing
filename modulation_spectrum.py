@@ -14,7 +14,7 @@ def max_contrast_sensitivity_ratio() -> float:
     return max_ratio
 
 def modulation_gray(filename):
-    img = Image.open("./img/" + filename).convert("L")
+    img, _, _ = Image.open("./img/" + filename).convert(prm.color_space).split()
     f_xy = np.asarray(img)
     f_uv = np.fft.fft2(f_xy)
     shifted_f_uv = np.fft.fftshift(f_uv)
@@ -39,6 +39,7 @@ def modulation_gray(filename):
     if not os.path.exists(mkdir_name):
         os.makedirs(mkdir_name)
 
+    # Method 1
     gray_signal = []
     shifted_f_uv_ms = shifted_f_uv.copy()
     for f in prm.scalefactor:
@@ -52,7 +53,7 @@ def modulation_gray(filename):
         i_f_xy = np.fft.ifft2(unshifted_f_uv).real
         gray_signal.append((Image.fromarray(i_f_xy).convert("L"), "{:.2f}".format(f), 1))
 
-    # コントラスト感度
+    # Method 2
     filter_array_cont = np.zeros(shape=(shifted_f_uv.shape[0], shifted_f_uv.shape[1]), dtype=np.float32)
     center = (filter_array_cont.shape[0] // 2, filter_array_cont.shape[1] // 2)
     angle = 3.416
@@ -86,18 +87,17 @@ def modulation_gray(filename):
     return gray_signal
 
 def modulation_color_using_gray(filename, gray) -> None:
-    color_space = "YCbCr"
-    _, cb, cr = Image.open("./img/" + filename).convert(color_space).split()
+    _, cb, cr = Image.open("./img/" + filename).convert(prm.color_space).split()
 
     out_dir = "./result/" + os.path.splitext(filename)[0] + "/"
     for (signal, string, method) in gray:
-        out = Image.merge(color_space, (signal, cb, cr)).convert("RGB")
+        out = Image.merge(prm.color_space, (signal, cb, cr)).convert("RGB")
         if method == 1:
             out.save(out_dir + "method1/" + string + ".png")
         else:
             out.save(out_dir + "method2/" + string + ".png")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     files = os.listdir("./img")
     files = ["tex001.bmp", "tex002.bmp"]
     for file in files:
