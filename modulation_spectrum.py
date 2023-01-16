@@ -99,7 +99,7 @@ def modulation_color_using_gray(filename, gray) -> None:
 
 if __name__ == "__main__":
     files = os.listdir("./img")
-    files = ["tex001.bmp", "tex002.bmp"]
+    # files = ["tex022.bmp"]
     for file in files:
         print(file)
         gray = modulation_gray(file)
